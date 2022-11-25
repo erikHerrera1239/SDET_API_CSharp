@@ -18,6 +18,10 @@
     <Content Include="Requests\**">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Remove="Features\Unosquare\Models\OrdersPagedRequestModel.cs" />
+    <None Remove="Requests\Unosquare\Posts\ordersPaged.json" />
+    <Content Include="Features\Unosquare\Models\OrdersPaged\Column.cs" />
+    <Content Include="Features\Unosquare\Models\OrdersPaged\OrdersPagedRequestModel.cs" />
     <Content Include="log4net.config">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

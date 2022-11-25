@@ -1,9 +1,11 @@
 ﻿using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SDETAPI_CSharp.Features.HealthcareGov.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 
 namespace SDETAPI_CSharp.Core
 {
@@ -25,6 +27,13 @@ namespace SDETAPI_CSharp.Core
             }
 
             return result;
+        }
+
+        public JObject GetJObjectFromJsonFile(string directory, string fileName, ILog log)
+        {
+            var files = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+            var filePath = files.Single(f => Path.GetFileName(f) == fileName + ".json");
+            return this.ReadJsonFile(filePath, log);
         }
     }
 }

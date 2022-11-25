@@ -12,7 +12,9 @@ namespace SDETAPI_CSharp.Features.HealthcareGov
 {
     public class HealtcareFeature : IFeature
     {
-        public string RequestsDirectory => @"Requests\HealthcareGov\";
+        private string _requestsDirectory = @"Requests\HealthcareGov\";
+
+        public string RequestsDirectory { get => this._requestsDirectory; set => this._requestsDirectory = value; }
 
         public void SetupQueryParameters(RestRequest request, List<KeyValuePair<string, string>> queryParameters = null)
         {
