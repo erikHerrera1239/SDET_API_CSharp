@@ -1,25 +1,50 @@
-﻿using RestSharp;
+﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using Newtonsoft.Json.Linq;
+using RestSharp;
 using SDETAPI_CSharp.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace SDETAPI_CSharp.Features
 {
-    public class RequestBuilder
+    public class RequestBuilder<TFeature> where TFeature : IFeature, new()
     {
-        private IRestCore _restCore;
+        internal readonly string _requestDirectory;
+        private readonly TFeature _feature;
 
-        public RequestBuilder(IRestCore restCore)
+        public RequestBuilder()
         {
-            _restCore = restCore;
+            this._feature = new TFeature();
+            this._requestDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this._feature.RequestsDirectory);
         }
 
-        public RestResponse PerformRequest(string method, string path, List<KeyValuePair<string, string>> headers, object body)
+        internal RestCore RestCore => RestCore.GetInstance;
+
+        public RestResponse PerformRequest(string fileName, List<KeyValuePair<string, string>> headers = null, List<KeyValuePair<string, string>> queryParams = null, object body = null, Action<RestRequest> customAction = null)
         {
-            var request = _restCore.CreateRequestWithHeaders(method, headers, path);
-            _restCore.AddRequestBody(request, body);
-            return _restCore.ExecuteRequest(request);
+            var obj = this.GetJObjectFromJsonFile(fileName);
+            var method = obj.Value<string>("Method");
+            var url = obj.Value<string>("URL");
+            var request = headers == null
+                ? RestCore.CreateRequest(method, url)
+                : RestCore.CreateRequestWithHeaders(method, headers, url);
+            this._feature.SetupQueryParameters(request, queryParams);
+            if (customAction != null)
+            {
+                customAction.Invoke(request);
+            }
+            if (body != null) RestCore.AddRequestBody(request, body);
+            return RestCore.ExecuteRequest(request);
+        }
+
+        private JObject GetJObjectFromJsonFile(string fileName)
+        {
+            var files = Directory.GetFiles(this._requestDirectory, "*", SearchOption.AllDirectories);
+            var filePath = files.Single(f => Path.GetFileName(f) == fileName + ".json");
+            return new JsonReader().ReadJsonFile(filePath);
         }
     }
 }

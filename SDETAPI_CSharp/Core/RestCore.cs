@@ -3,39 +3,52 @@ using NUnit.Framework.Internal;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace SDETAPI_CSharp.Core
 {
     //Builder
-    public class RestCore : IRestCore
+    public class RestCore
     {
         private RestClient _restClient { get; }
 
-        public RestCore(string baseUrl)
+        private static RestCore _instance;
+
+        public static RestCore GetInstance
         {
-            _restClient = new RestClient(baseUrl);
+            get
+            {
+                _instance ??= new RestCore();
+                return _instance;
+            }
         }
 
-        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, string path = null)
+        private RestCore()
+        {
+            _restClient = new RestClient();
+        }
+
+        public RestRequest CreateRequest(string methodType, string url = null)
         {
             methodType = methodType.ToUpper();
             RestRequest restRequest;
             switch (methodType)
             {
                 case "GET":
-                    restRequest = new RestRequest(path, Method.Get);
+                    restRequest = new RestRequest(url, Method.Get);
                     break;
 
                 case "POST":
-                    restRequest = new RestRequest(path, Method.Post);
+                    restRequest = new RestRequest(url, Method.Post);
                     break;
 
                 case "PUT":
-                    restRequest = new RestRequest(path, Method.Put);
+                    restRequest = new RestRequest(url, Method.Put);
                     break;
 
                 case "DELETE":
-                    restRequest = new RestRequest(path, Method.Delete);
+                    restRequest = new RestRequest(url, Method.Delete);
                     break;
 
                 default:
@@ -43,6 +56,12 @@ namespace SDETAPI_CSharp.Core
                                                       $"Current valid types: Get, Post, Put and Delete");
             }
 
+            return restRequest;
+        }
+
+        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, string url = null)
+        {
+            var restRequest = this.CreateRequest(methodType, url);
             restRequest.AddHeaders(headerList);
 
             return restRequest;
@@ -60,6 +79,11 @@ namespace SDETAPI_CSharp.Core
             Console.WriteLine(response.StatusDescription);
             Console.WriteLine(response.Content.ToString());
             return response;
+        }
+
+        public void AddQueryParameters(RestRequest restRequest, [NotNull] List<KeyValuePair<string, string>> queryParameters)
+        {
+            queryParameters.ForEach(qp => restRequest.AddQueryParameter(qp.Key, qp.Value));
         }
     }
 }
