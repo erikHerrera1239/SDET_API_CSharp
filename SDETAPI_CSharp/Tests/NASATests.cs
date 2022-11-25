@@ -40,7 +40,7 @@ namespace SDETAPI_CSharp.Tests
         {
             var response = this._requestBuilder.PerformRequest(
                 "asteroidsNewWs",
-                customAction: r => r.AddUrlSegment("id", 3542519)
+                customAction: (r, _) => r.AddUrlSegment("id", 3542519)
             );
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             var id = RestCore.GetInstance.DeserializeJsonResponse<AsteroidResponseModel>(response).id;
@@ -70,7 +70,7 @@ namespace SDETAPI_CSharp.Tests
                 var response = this._requestBuilder.PerformRequest(
                     "techTransfer",
                     queryParams: queryParams,
-                    customAction: r => r.AddUrlSegment("resource", resource.Key)
+                    customAction: (r, _) => r.AddUrlSegment("resource", resource.Key)
                 );
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 var result = RestCore.GetInstance.DeserializeJsonResponse<TechTransferResponseModel>(response);

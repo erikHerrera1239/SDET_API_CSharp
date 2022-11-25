@@ -15,18 +15,21 @@ namespace SDETAPI_CSharp.Features
         private readonly TFeature _feature;
         private readonly ILog _log;
 
+        public string RequestDirectory => _requestDirectory;
+
         public RequestBuilder(ILog log)
         {
             _log = log;
             this._feature = new TFeature();
             this._requestDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this._feature.RequestsDirectory);
+            this._feature.RequestsDirectory = this._requestDirectory;
         }
 
         internal RestCore RestCore => RestCore.GetInstance;
 
-        public RestResponse PerformRequest(string fileName, List<KeyValuePair<string, string>> headers = null, List<KeyValuePair<string, string>> queryParams = null, object body = null, Action<RestRequest> customAction = null)
+        public RestResponse PerformRequest(string fileName, List<KeyValuePair<string, string>> headers = null, List<KeyValuePair<string, string>> queryParams = null, object body = null, Action<RestRequest, IFeature> customAction = null)
         {
-            var obj = this.GetJObjectFromJsonFile(fileName);
+            var obj = new JsonReader().GetJObjectFromJsonFile(this._requestDirectory, fileName, this._log);
             var method = obj.Value<string>("Method");
             var url = obj.Value<string>("URL");
             var request = headers == null
@@ -35,17 +38,10 @@ namespace SDETAPI_CSharp.Features
             this._feature.SetupQueryParameters(request, queryParams);
             if (customAction != null)
             {
-                customAction.Invoke(request);
+                customAction.Invoke(request, this._feature);
             }
             if (body != null) RestCore.AddRequestBody(request, body, _log);
             return RestCore.ExecuteRequest(request, _log);
-        }
-
-        private JObject GetJObjectFromJsonFile(string fileName)
-        {
-            var files = Directory.GetFiles(this._requestDirectory, "*", SearchOption.AllDirectories);
-            var filePath = files.Single(f => Path.GetFileName(f) == fileName + ".json");
-            return new JsonReader().ReadJsonFile(filePath, _log);
         }
     }
 }
