@@ -1,4 +1,4 @@
 {
   "Method": "Get",
-  "URL": "https://api.nasa.gov/neo/rest/v1/feed"
+  "URL": "https://api.nasa.gov/neo/rest/v1/neo/{id}"
 }
