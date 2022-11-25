@@ -12,19 +12,18 @@ using System.Net;
 
 namespace SDETAPI_CSharp.Tests
 {
-    public class NASATests
+    [TestFixture]
+    public class NASATests : BaseTestClass<NASATests>
     {
-        private readonly TextWriter _testWriter = TestContext.Out;
-
         private RequestBuilder<NasaFeature> _requestBuilder;
 
         [SetUp]
         public void Setup()
         {
-            this._requestBuilder = new RequestBuilder<NasaFeature>(this._testWriter);
+            this._requestBuilder = new RequestBuilder<NasaFeature>(Log);
         }
 
-        [Test]
+        [Test, Category("NASA")]
         public void GetApodTest()
         {
             var response = this._requestBuilder.PerformRequest("apod");
@@ -36,7 +35,7 @@ namespace SDETAPI_CSharp.Tests
             );
         }
 
-        [Test]
+        [Test, Category("NASA")]
         public void GetAsteroidsNewWsTest()
         {
             var response = this._requestBuilder.PerformRequest(
@@ -51,7 +50,7 @@ namespace SDETAPI_CSharp.Tests
             );
         }
 
-        [Test]
+        [Test, Category("NASA")]
         public void GetTechTransferTest()
         {
             var queryParams = new List<KeyValuePair<string, string>>()

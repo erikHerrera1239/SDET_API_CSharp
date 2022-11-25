@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using log4net;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -8,7 +9,7 @@ namespace SDETAPI_CSharp.Core
 {
     public class JsonReader
     {
-        public JObject ReadJsonFile([NotNull] string completePath, TextWriter textWriter)
+        public JObject ReadJsonFile([NotNull] string completePath, ILog log)
         {
             JObject result = null;
             try
@@ -20,7 +21,7 @@ namespace SDETAPI_CSharp.Core
             }
             catch (Exception e) when (e is IOException || e is OutOfMemoryException || e is JsonReaderException)
             {
-                textWriter.WriteLine("Parse Exception, either for lack of memory, filesystem issue, or mistakes in file.Exception[{0}]", e.Message);
+                log.Info("Parse Exception, either for lack of memory, filesystem issue, or mistakes in file.Exception[{0}]", e);
             }
 
             return result;

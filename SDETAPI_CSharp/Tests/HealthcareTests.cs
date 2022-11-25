@@ -1,3 +1,5 @@
+using log4net;
+using log4net.Repository;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using SDETAPI_CSharp.Core;
@@ -7,22 +9,22 @@ using SDETAPI_CSharp.Features.HealthcareGov.Models;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 
 namespace SDETAPI_CSharp.Tests
 {
-    public class HealthcareTests
+    [TestFixture]
+    public class HealthcareTests : BaseTestClass<HealthcareTests>
     {
-        private readonly TextWriter _testWriter = TestContext.Out;
-
         public RequestBuilder<HealtcareFeature> _requestBuilder;
 
         [SetUp]
         public void Setup()
         {
-            this._requestBuilder = new RequestBuilder<HealtcareFeature>(this._testWriter);
+            this._requestBuilder = new RequestBuilder<HealtcareFeature>(Log);
         }
 
-        [Test]
+        [Test, Category("Healtcare")]
         public void GetArticlesTest()
         {
             var response = this._requestBuilder.PerformRequest("articles");
@@ -38,7 +40,7 @@ namespace SDETAPI_CSharp.Tests
             );
         }
 
-        [Test]
+        [Test, Category("Healtcare")]
         public void GetBlogTest()
         {
             var response = this._requestBuilder.PerformRequest("blog");
@@ -50,9 +52,11 @@ namespace SDETAPI_CSharp.Tests
                 ),
                 Is.True
             );
+            var blogDate = (from b in blogs where b.title == "Don’t miss out: Get Marketplace insurance that starts Jan 1" select b.date).SingleOrDefault();
+            Assert.That(blogDate, Is.EqualTo("2022-11-17 00:00:00 +0000"));
         }
 
-        [Test]
+        [Test, Category("Healtcare")]
         public void GetGlossaryTest()
         {
             var response = this._requestBuilder.PerformRequest("glossary");
@@ -64,6 +68,9 @@ namespace SDETAPI_CSharp.Tests
                 ),
                 Is.True
             );
+            var glossariesContainingServices = (from g in glossaries where g.title.Contains("services", System.StringComparison.OrdinalIgnoreCase) select g).ToList();
+            glossariesContainingServices.ForEach(g => Log.Info($"{g.title}: {g.content}"));
+            Assert.That(glossariesContainingServices.Count, Is.EqualTo(12));
         }
     }
 }

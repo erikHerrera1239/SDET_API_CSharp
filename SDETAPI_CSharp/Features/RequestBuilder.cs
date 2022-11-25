@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using log4net;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using SDETAPI_CSharp.Core;
 using System;
@@ -12,11 +13,11 @@ namespace SDETAPI_CSharp.Features
     {
         internal readonly string _requestDirectory;
         private readonly TFeature _feature;
-        private readonly TextWriter _writer;
+        private readonly ILog _log;
 
-        public RequestBuilder(TextWriter textWriter)
+        public RequestBuilder(ILog log)
         {
-            _writer = textWriter;
+            _log = log;
             this._feature = new TFeature();
             this._requestDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this._feature.RequestsDirectory);
         }
@@ -29,22 +30,22 @@ namespace SDETAPI_CSharp.Features
             var method = obj.Value<string>("Method");
             var url = obj.Value<string>("URL");
             var request = headers == null
-                ? RestCore.CreateRequest(method, _writer, url)
-                : RestCore.CreateRequestWithHeaders(method, headers, _writer, url);
+                ? RestCore.CreateRequest(method, _log, url)
+                : RestCore.CreateRequestWithHeaders(method, headers, _log, url);
             this._feature.SetupQueryParameters(request, queryParams);
             if (customAction != null)
             {
                 customAction.Invoke(request);
             }
-            if (body != null) RestCore.AddRequestBody(request, body, _writer);
-            return RestCore.ExecuteRequest(request, _writer);
+            if (body != null) RestCore.AddRequestBody(request, body, _log);
+            return RestCore.ExecuteRequest(request, _log);
         }
 
         private JObject GetJObjectFromJsonFile(string fileName)
         {
             var files = Directory.GetFiles(this._requestDirectory, "*", SearchOption.AllDirectories);
             var filePath = files.Single(f => Path.GetFileName(f) == fileName + ".json");
-            return new JsonReader().ReadJsonFile(filePath, _writer);
+            return new JsonReader().ReadJsonFile(filePath, _log);
         }
     }
 }
