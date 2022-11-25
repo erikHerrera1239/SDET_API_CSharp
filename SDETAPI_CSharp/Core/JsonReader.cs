@@ -1,17 +1,14 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NUnit.Framework.Internal;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text;
 
 namespace SDETAPI_CSharp.Core
 {
     public class JsonReader
     {
-        public JObject ReadJsonFile([NotNull] string completePath)
+        public JObject ReadJsonFile([NotNull] string completePath, TextWriter textWriter)
         {
             JObject result = null;
             try
@@ -23,7 +20,7 @@ namespace SDETAPI_CSharp.Core
             }
             catch (Exception e) when (e is IOException || e is OutOfMemoryException || e is JsonReaderException)
             {
-                Console.WriteLine("Parse Exception, either for lack of memory, filesystem issue, or mistakes in file.Exception[{0}]", e.Message);
+                textWriter.WriteLine("Parse Exception, either for lack of memory, filesystem issue, or mistakes in file.Exception[{0}]", e.Message);
             }
 
             return result;

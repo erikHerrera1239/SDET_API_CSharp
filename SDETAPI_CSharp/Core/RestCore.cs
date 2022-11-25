@@ -1,10 +1,10 @@
-﻿using NUnit.Framework;
-using NUnit.Framework.Internal;
+﻿using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using System.IO;
+using System.Linq;
 
 namespace SDETAPI_CSharp.Core
 {
@@ -29,7 +29,7 @@ namespace SDETAPI_CSharp.Core
             _restClient = new RestClient();
         }
 
-        public RestRequest CreateRequest(string methodType, string url = null)
+        public RestRequest CreateRequest(string methodType, TextWriter textWriter, string url = null)
         {
             methodType = methodType.ToUpper();
             RestRequest restRequest;
@@ -56,34 +56,43 @@ namespace SDETAPI_CSharp.Core
                                                       $"Current valid types: Get, Post, Put and Delete");
             }
 
+            textWriter.WriteLine($"Created Request: {restRequest}");
+
             return restRequest;
         }
 
-        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, string url = null)
+        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, TextWriter textWriter, string url = null)
         {
-            var restRequest = this.CreateRequest(methodType, url);
+            var restRequest = this.CreateRequest(methodType, textWriter, url);
             restRequest.AddHeaders(headerList);
+            textWriter.WriteLine($"Adding Headers: {string.Join(", ", headerList.Select(x => $"{x.Key}: {x.Value}")).ToList()}");
 
             return restRequest;
         }
 
-        public void AddRequestBody(RestRequest restRequest, object body)
+        public void AddRequestBody(RestRequest restRequest, object body, TextWriter textWriter)
         {
             restRequest.AddJsonBody(body);
-            Console.WriteLine(body.ToString());
+            textWriter.WriteLine(body.ToString());
         }
 
-        public RestResponse ExecuteRequest(RestRequest restRequest)
+        public RestResponse ExecuteRequest(RestRequest restRequest, TextWriter textWriter)
         {
             var response = this._restClient.Execute(restRequest);
-            Console.WriteLine(response.StatusDescription);
-            Console.WriteLine(response.Content.ToString());
+            textWriter.WriteLine(response.StatusDescription);
+            textWriter.WriteLine(response.Content.ToString());
             return response;
         }
 
-        public void AddQueryParameters(RestRequest restRequest, [NotNull] List<KeyValuePair<string, string>> queryParameters)
+        public void AddQueryParameters(
+            RestRequest restRequest,
+            [NotNull] List<KeyValuePair<string, string>> queryParameters
+        )
         {
             queryParameters.ForEach(qp => restRequest.AddQueryParameter(qp.Key, qp.Value));
         }
+
+        public T DeserializeJsonResponse<T>(RestResponse restResponse)
+            => JsonConvert.DeserializeObject<T>(restResponse.Content.ToString());
     }
 }

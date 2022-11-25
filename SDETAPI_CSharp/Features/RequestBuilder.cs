@@ -1,12 +1,10 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using RestSharp;
 using SDETAPI_CSharp.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace SDETAPI_CSharp.Features
 {
@@ -14,9 +12,11 @@ namespace SDETAPI_CSharp.Features
     {
         internal readonly string _requestDirectory;
         private readonly TFeature _feature;
+        private readonly TextWriter _writer;
 
-        public RequestBuilder()
+        public RequestBuilder(TextWriter textWriter)
         {
+            _writer = textWriter;
             this._feature = new TFeature();
             this._requestDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this._feature.RequestsDirectory);
         }
@@ -29,22 +29,22 @@ namespace SDETAPI_CSharp.Features
             var method = obj.Value<string>("Method");
             var url = obj.Value<string>("URL");
             var request = headers == null
-                ? RestCore.CreateRequest(method, url)
-                : RestCore.CreateRequestWithHeaders(method, headers, url);
+                ? RestCore.CreateRequest(method, _writer, url)
+                : RestCore.CreateRequestWithHeaders(method, headers, _writer, url);
             this._feature.SetupQueryParameters(request, queryParams);
             if (customAction != null)
             {
                 customAction.Invoke(request);
             }
-            if (body != null) RestCore.AddRequestBody(request, body);
-            return RestCore.ExecuteRequest(request);
+            if (body != null) RestCore.AddRequestBody(request, body, _writer);
+            return RestCore.ExecuteRequest(request, _writer);
         }
 
         private JObject GetJObjectFromJsonFile(string fileName)
         {
             var files = Directory.GetFiles(this._requestDirectory, "*", SearchOption.AllDirectories);
             var filePath = files.Single(f => Path.GetFileName(f) == fileName + ".json");
-            return new JsonReader().ReadJsonFile(filePath);
+            return new JsonReader().ReadJsonFile(filePath, _writer);
         }
     }
 }
