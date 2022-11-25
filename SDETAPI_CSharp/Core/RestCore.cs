@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using log4net;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace SDETAPI_CSharp.Core
             _restClient = new RestClient();
         }
 
-        public RestRequest CreateRequest(string methodType, TextWriter textWriter, string url = null)
+        public RestRequest CreateRequest(string methodType, ILog log, string url = null)
         {
             methodType = methodType.ToUpper();
             RestRequest restRequest;
@@ -56,31 +57,31 @@ namespace SDETAPI_CSharp.Core
                                                       $"Current valid types: Get, Post, Put and Delete");
             }
 
-            textWriter.WriteLine($"Created Request: {restRequest}");
+            log.Info($"Created Request: {restRequest}");
 
             return restRequest;
         }
 
-        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, TextWriter textWriter, string url = null)
+        public RestRequest CreateRequestWithHeaders(string methodType, List<KeyValuePair<string, string>> headerList, ILog log, string url = null)
         {
-            var restRequest = this.CreateRequest(methodType, textWriter, url);
+            var restRequest = this.CreateRequest(methodType, log, url);
             restRequest.AddHeaders(headerList);
-            textWriter.WriteLine($"Adding Headers: {string.Join(", ", headerList.Select(x => $"{x.Key}: {x.Value}")).ToList()}");
+            log.Info($"Adding Headers: {string.Join(", ", headerList.Select(x => $"{x.Key}: {x.Value}")).ToList()}");
 
             return restRequest;
         }
 
-        public void AddRequestBody(RestRequest restRequest, object body, TextWriter textWriter)
+        public void AddRequestBody(RestRequest restRequest, object body, ILog log)
         {
             restRequest.AddJsonBody(body);
-            textWriter.WriteLine(body.ToString());
+            log.Info(body.ToString());
         }
 
-        public RestResponse ExecuteRequest(RestRequest restRequest, TextWriter textWriter)
+        public RestResponse ExecuteRequest(RestRequest restRequest, ILog log)
         {
             var response = this._restClient.Execute(restRequest);
-            textWriter.WriteLine(response.StatusDescription);
-            textWriter.WriteLine(response.Content.ToString());
+            log.Info(response.StatusDescription);
+            log.Info(response.Content.ToString());
             return response;
         }
 
